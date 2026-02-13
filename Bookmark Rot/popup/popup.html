@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookmark Rot Fixer Pro</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>🔗 Bookmark Rot Fixer <span class="pro-badge">PRO</span></h1>
+    </header>
+
+    <!-- Quick Fix Banner -->
+    <div id="quickFixBanner" class="quick-fix-banner">
+      <div class="quick-fix-info">
+        <span class="quick-fix-icon">⚡</span>
+        <div>
+          <strong>Quick Fix</strong>
+          <p id="issueSummary">Loading...</p>
+        </div>
+      </div>
+      <button id="quickFixBtn" class="btn primary quick-fix-btn">Fix All</button>
+    </div>
+
+    <!-- Tab Navigation -->
+    <nav class="tabs">
+      <button class="tab active" data-tab="scan">🔍 Scan</button>
+      <button class="tab" data-tab="duplicates">📋 Dupes</button>
+      <button class="tab" data-tab="stale">🕰️ Stale</button>
+      <button class="tab" data-tab="tools">🛠️ Tools</button>
+    </nav>
+
+    <!-- Scan Tab -->
+    <section id="scan" class="tab-content active">
+      <div class="scan-options">
+        <label class="radio-option">
+          <input type="radio" name="scanScope" value="all" checked>
+          <span>Scan All Bookmarks</span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="scanScope" value="folder">
+          <span>Select Folder</span>
+        </label>
+      </div>
+
+      <div id="folderPicker" class="folder-picker hidden">
+        <select id="folderSelect">
+          <option value="">Loading folders...</option>
+        </select>
+      </div>
+
+      <button id="scanBtn" class="btn primary">🔍 Start Scan</button>
+
+      <div id="scanProgress" class="progress-container hidden">
+        <div class="progress-bar">
+          <div class="progress-fill"></div>
+        </div>
+        <p class="progress-text">Scanning... <span id="progressCount">0/0</span></p>
+      </div>
+
+      <div id="scanResults" class="results hidden">
+        <div class="results-header">
+          <h3>Results</h3>
+          <div class="results-actions">
+            <button id="waybackBtn" class="btn-icon" title="Find in Wayback Machine">🏛️</button>
+            <button id="exportScanBtn" class="btn-icon" title="Export Results">📥</button>
+          </div>
+        </div>
+        <div class="result-stats">
+          <div class="stat fixed"><span class="stat-value" id="fixedCount">0</span><span class="stat-label">Fixed</span>
+          </div>
+          <div class="stat broken"><span class="stat-value" id="brokenCount">0</span><span
+              class="stat-label">Broken</span></div>
+          <div class="stat unchanged"><span class="stat-value" id="unchangedCount">0</span><span
+              class="stat-label">OK</span></div>
+        </div>
+        <div id="resultDetails" class="result-details"></div>
+      </div>
+    </section>
+
+    <!-- Duplicates Tab -->
+    <section id="duplicates" class="tab-content">
+      <p class="tab-description">Find bookmarks with the same URL.</p>
+      <button id="findDuplicatesBtn" class="btn primary">📋 Find Duplicates</button>
+      <div id="duplicateProgress" class="progress-container hidden">
+        <div class="progress-bar">
+          <div class="progress-fill"></div>
+        </div>
+        <p class="progress-text"><span id="duplicateProgressCount">0/0</span></p>
+      </div>
+      <div id="duplicateResults" class="duplicate-results hidden">
+        <div class="results-header">
+          <span><strong id="duplicateCount">0</strong> duplicate groups</span>
+          <button id="exportDuplicatesBtn" class="btn-icon">📥</button>
+        </div>
+        <button id="deleteAllDuplicatesBtn" class="btn danger" disabled>🗑️ Delete Duplicates (Keep First)</button>
+        <div id="duplicateList" class="duplicate-list"></div>
+      </div>
+    </section>
+
+    <!-- Stale Tab -->
+    <section id="stale" class="tab-content">
+      <div class="stale-options">
+        <label>Not accessed in:</label>
+        <select id="stalePeriod">
+          <option value="7">7 days</option>
+          <option value="30" selected>30 days</option>
+          <option value="90">3 months</option>
+          <option value="180">6 months</option>
+          <option value="365">1 year</option>
+        </select>
+      </div>
+      <button id="findStaleBtn" class="btn primary">🕰️ Find Stale Bookmarks</button>
+      <div id="staleProgress" class="progress-container hidden">
+        <div class="progress-bar">
+          <div class="progress-fill"></div>
+        </div>
+        <p class="progress-text"><span id="staleProgressCount">0/0</span></p>
+      </div>
+      <div id="staleResults" class="stale-results hidden">
+        <div class="stale-header">
+          <label class="checkbox-option small">
+            <input type="checkbox" id="selectAllStale">
+            <span>All (<span id="staleCount">0</span>)</span>
+          </label>
+          <div class="stale-actions">
+            <button id="exportStaleBtn" class="btn-icon">📥</button>
+            <button id="deleteSelectedBtn" class="btn danger small" disabled>🗑️ Delete</button>
+          </div>
+        </div>
+        <div id="staleList" class="stale-list"></div>
+      </div>
+    </section>
+
+    <!-- Tools Tab -->
+    <section id="tools" class="tab-content">
+      <!-- Backup & Restore -->
+      <div class="tool-section highlight">
+        <h3>💾 Backup & Restore</h3>
+        <div class="backup-actions">
+          <button id="createBackupBtn" class="btn secondary">Create Backup</button>
+        </div>
+        <div id="backupList" class="backup-list"></div>
+      </div>
+
+      <!-- Title Fixer -->
+      <div class="tool-section">
+        <h3>🏷️ Title Fixer</h3>
+        <button id="findBadTitlesBtn" class="btn secondary">Find Bad Titles</button>
+        <div id="titleProgress" class="progress-container hidden">
+          <div class="progress-bar">
+            <div class="progress-fill"></div>
+          </div>
+          <p class="progress-text"><span id="titleProgressCount">0/0</span></p>
+        </div>
+        <div id="titleResults" class="tool-results hidden">
+          <span><strong id="badTitleCount">0</strong> bad titles</span>
+          <button id="fixTitlesBtn" class="btn primary small" disabled>🔧 Fix All</button>
+        </div>
+      </div>
+
+      <!-- Empty Folders -->
+      <div class="tool-section">
+        <h3>📁 Empty Folders</h3>
+        <button id="findEmptyFoldersBtn" class="btn secondary">Find Empty</button>
+        <div id="emptyFolderResults" class="tool-results hidden">
+          <span><strong id="emptyFolderCount">0</strong> empty folders</span>
+          <button id="deleteEmptyFoldersBtn" class="btn danger small" disabled>🗑️ Delete</button>
+        </div>
+      </div>
+
+      <!-- Scheduled Scans -->
+      <div class="tool-section">
+        <h3>⏰ Auto Scan</h3>
+        <div class="schedule-options">
+          <select id="scheduleInterval">
+            <option value="0">Off</option>
+            <option value="1">Daily</option>
+            <option value="7">Weekly</option>
+            <option value="30">Monthly</option>
+          </select>
+          <button id="saveScheduleBtn" class="btn secondary small">Save</button>
+        </div>
+        <p id="lastScanInfo" class="schedule-info hidden"></p>
+      </div>
+
+      <!-- Settings -->
+      <div class="tool-section">
+        <h3>⚙️ Settings</h3>
+        <label class="checkbox-option small">
+          <input type="checkbox" id="skipSpecialUrls" checked>
+          <span>Skip chrome:// & javascript:</span>
+        </label>
+        <label class="checkbox-option small">
+          <input type="checkbox" id="autoCreateBrokenFolder" checked>
+          <span>Create "Broken" folder</span>
+        </label>
+        <button id="saveSettingsBtn" class="btn secondary small">💾 Save</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Quick Fix Modal -->
+  <div id="quickFixModal" class="modal hidden">
+    <div class="modal-content">
+      <h2>⚡ Quick Fix</h2>
+      <div id="quickFixStatus" class="quick-fix-status">
+        <div class="step" data-step="0">💾 Creating backup...</div>
+        <div class="step" data-step="1">🔍 Fixing redirects...</div>
+        <div class="step" data-step="2">📋 Removing duplicates...</div>
+        <div class="step" data-step="3">📁 Cleaning folders...</div>
+      </div>
+      <div id="quickFixResults" class="hidden">
+        <div class="quick-fix-result-grid"></div>
+        <button id="closeQuickFixBtn" class="btn primary">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js" type="module"></script>
+</body>
+
+</html>
